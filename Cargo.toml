@@ -1,2 +1,2 @@
 [workspace]
-members = ["arrow", "arrow_serde", "arrow_serde_macros"]
+members = ["arrow", "arrow_serde"]
