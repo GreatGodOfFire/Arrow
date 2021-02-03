@@ -1,8 +1,5 @@
 use std::io::{Cursor, Read};
 
-use serde::de::value::SeqDeserializer;
-// use std::Peek;
-
 use crate::error::Error;
 use crate::types;
 
@@ -36,7 +33,7 @@ impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
         unimplemented!("deserialize_any not supported")
     }
 
-    fn deserialize_bool<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_bool<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
@@ -46,21 +43,21 @@ impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
         })
     }
 
-    fn deserialize_i8<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_i8<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
         v.visit_i8(self.read_byte()? as i8)
     }
 
-    fn deserialize_i16<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_i16<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
         v.visit_i16(i16::from_be_bytes([self.read_byte()?, self.read_byte()?]))
     }
 
-    fn deserialize_i32<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_i32<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
@@ -72,7 +69,7 @@ impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
         ]))
     }
 
-    fn deserialize_i64<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_i64<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
@@ -88,74 +85,76 @@ impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
         ]))
     }
 
-    fn deserialize_u8<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_u8<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
         v.visit_u8(self.read_byte()?)
     }
 
-    fn deserialize_u16<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_u16<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_u16(u16::from_be_bytes([self.read_byte()?, self.read_byte()?]))
+        let mut bytes = [0; 2];
+
+        for i in 0..2 {
+            bytes[i] = self.read_byte()?;
+        }
+
+        v.visit_u16(u16::from_be_bytes(bytes))
     }
 
-    fn deserialize_u32<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_u32<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_u32(u32::from_be_bytes([
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-        ]))
+        let mut bytes = [0; 4];
+
+        for i in 0..4 {
+            bytes[i] = self.read_byte()?;
+        }
+
+        v.visit_u32(u32::from_be_bytes(bytes))
     }
 
-    fn deserialize_u64<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_u64<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_u64(u64::from_be_bytes([
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-        ]))
+        let mut bytes = [0; 8];
+
+        for i in 0..8 {
+            bytes[i] = self.read_byte()?;
+        }
+
+        v.visit_u64(u64::from_be_bytes(bytes))
     }
 
-    fn deserialize_f32<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_f32<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_f32(f32::from_be_bytes([
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-        ]))
+        let mut bytes = [0; 4];
+
+        for i in 0..4 {
+            bytes[i] = self.read_byte()?;
+        }
+
+        v.visit_f32(f32::from_be_bytes(bytes))
     }
 
-    fn deserialize_f64<V>(mut self, v: V) -> std::result::Result<V::Value, Self::Error>
+    fn deserialize_f64<V>(self, v: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_f64(f64::from_be_bytes([
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-            self.read_byte()?,
-        ]))
+        let mut bytes = [0; 8];
+
+        for i in 0..8 {
+            bytes[i] = self.read_byte()?;
+        }
+
+        v.visit_f64(f64::from_be_bytes(bytes))
     }
 
     fn deserialize_char<V>(self, _: V) -> std::result::Result<V::Value, Self::Error>
@@ -176,10 +175,9 @@ impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
     where
         V: serde::de::Visitor<'d>,
     {
-        let mut reader = self.reader.clone();
-        let len = types::read_varint(&mut reader);
+        let len = types::read_varint(&mut self.reader);
         let mut buf = vec![0; len.0 as usize];
-        reader.read_exact(buf.as_mut_slice()).unwrap();
+        self.reader.read_exact(buf.as_mut_slice()).unwrap();
         let string = String::from_utf8(buf).unwrap();
         v.visit_string(string)
     }
@@ -312,20 +310,18 @@ struct SeqAccess<'d> {
 
 impl<'d> SeqAccess<'d> {
     fn new(de: &'d mut Deserializer) -> Self {
-        Self {
-            de,
-        }
+        Self { de }
     }
 }
 
 // `SeqAccess` is provided to the `Visitor` to give it the ability to iterate
 // through elements of the sequence.
-impl<'d> serde::de::SeqAccess<'d> for SeqAccess<'d> {
+impl<'d, 's> serde::de::SeqAccess<'s> for SeqAccess<'d> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
-        T: serde::de::DeserializeSeed<'d>,
+        T: serde::de::DeserializeSeed<'s>,
     {
         // Check if there are no more elements.
         if !self.de.has_next() {

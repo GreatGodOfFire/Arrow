@@ -3,12 +3,40 @@ use serde::{
     Deserialize, Serialize,
 };
 
-use std::io::Read;
 use std::error::Error;
+use std::io::Read;
 
 #[derive(Debug)]
 pub struct Varint(pub i32);
 pub struct VarintVisitor;
+
+impl Varint {
+    pub fn len(&self) -> usize {
+        let mut buffer = Vec::new();
+        let mut value = self.0 as u32;
+        let mut count = 0;
+
+        loop {
+            count += 1;
+
+            let mut temp = (value & 0b01111111) as u8;
+
+            value >>= 7;
+
+            if value != 0 {
+                temp |= 0b10000000;
+            }
+
+            buffer.push(temp);
+
+            if value == 0 {
+                break;
+            }
+        }
+
+        count
+    }
+}
 
 impl Serialize for Varint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -74,21 +102,19 @@ impl<'d> Visitor<'d> for VarintVisitor {
     {
         let mut count = 0;
         let mut result = 0;
-        let mut read;
-        loop {
-            read = seq.next_element::<u8>()?.unwrap();
+        let mut read: u8;
+        while {
+            read = seq.next_element()?.unwrap();
             let value = (read & 0b01111111) as u32;
             result |= value << (7 * count);
 
             count += 1;
             if count > 5 {
-                panic!("Varint is too big")
+                panic!("VarInt is too big");
             }
 
-            if read & 0b10000000 != 0 {
-                break;
-            }
-        }
+            (read & 0b10000000) > 0
+        } {}
 
         Ok(result as i32)
     }
