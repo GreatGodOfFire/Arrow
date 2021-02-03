@@ -1,6 +1,7 @@
 use std::io::{Cursor, Read};
 
 use serde::de::value::SeqDeserializer;
+// use std::Peek;
 
 use crate::error::Error;
 use crate::types;
@@ -15,9 +16,17 @@ impl Deserializer {
         self.reader.read_exact(&mut buf).unwrap();
         Ok(buf[0])
     }
+
+    pub fn len(&self) -> usize {
+        self.reader.get_ref().len() - self.reader.position() as usize
+    }
+
+    pub fn has_next(&self) -> bool {
+        self.len() > 0
+    }
 }
 
-impl<'d> serde::Deserializer<'d> for Deserializer {
+impl<'a, 'd: 'a> serde::Deserializer<'d> for &'a mut Deserializer {
     type Error = Error;
 
     fn deserialize_any<V>(self, _: V) -> std::result::Result<V::Value, Self::Error>
@@ -229,7 +238,7 @@ impl<'d> serde::Deserializer<'d> for Deserializer {
     where
         V: serde::de::Visitor<'d>,
     {
-        v.visit_seq(SeqDeserializer::new(self.reader.into_inner().into_iter()))
+        v.visit_seq(SeqAccess::new(self))
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
@@ -267,7 +276,7 @@ impl<'d> serde::Deserializer<'d> for Deserializer {
     where
         V: serde::de::Visitor<'d>,
     {
-        todo!()
+        self.deserialize_seq(visitor)
     }
 
     fn deserialize_enum<V>(
@@ -294,5 +303,36 @@ impl<'d> serde::Deserializer<'d> for Deserializer {
         V: serde::de::Visitor<'d>,
     {
         todo!()
+    }
+}
+
+struct SeqAccess<'d> {
+    de: &'d mut Deserializer,
+}
+
+impl<'d> SeqAccess<'d> {
+    fn new(de: &'d mut Deserializer) -> Self {
+        Self {
+            de,
+        }
+    }
+}
+
+// `SeqAccess` is provided to the `Visitor` to give it the ability to iterate
+// through elements of the sequence.
+impl<'d> serde::de::SeqAccess<'d> for SeqAccess<'d> {
+    type Error = Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: serde::de::DeserializeSeed<'d>,
+    {
+        // Check if there are no more elements.
+        if !self.de.has_next() {
+            return Ok(None);
+        }
+
+        // Deserialize an array element.
+        seed.deserialize(&mut *self.de).map(Some)
     }
 }

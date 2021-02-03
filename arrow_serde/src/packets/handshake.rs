@@ -1,10 +1,11 @@
 pub mod serverbound {
     use crate::types::Varint;
 
-    use serde::de::{Visitor, SeqAccess, Deserialize};
+    use serde::Deserialize;
+
     use arrow_serde_macros::Packet;
 
-    #[derive(Debug, Packet)]
+    #[derive(Debug, Deserialize)]
     pub struct Handshake {
         version: Varint,
         string: String,

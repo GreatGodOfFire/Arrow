@@ -56,7 +56,8 @@ impl<'d> Visitor<'d> for VarintVisitor {
 
     fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
     where
-            E: Error, {
+        E: Error,
+    {
         Ok(v as i32)
     }
 
