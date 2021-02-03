@@ -3,8 +3,6 @@ pub mod serverbound {
 
     use serde::Deserialize;
 
-    use arrow_serde_macros::Packet;
-
     #[derive(Debug, Deserialize)]
     pub struct Handshake {
         version: Varint,
@@ -42,7 +40,7 @@ pub mod serverbound {
     //     }
     // }
 
-    #[derive(Packet)]
+    #[derive(Deserialize)]
     pub struct LegacyServerListPing {
         pub payload: u8,
     }

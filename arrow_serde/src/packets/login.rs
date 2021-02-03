@@ -1,16 +1,16 @@
 pub mod serverbound {
-    use arrow_serde_macros::Packet;
+    use serde::Deserialize;
 
-    #[derive(Debug, Packet)]
+    #[derive(Debug, Deserialize)]
     pub struct LoginStart {
         name: String,
     }
 }
 
 pub mod clientbound {
-    use arrow_serde_macros::Packet;
+    use serde::Deserialize;
 
-    #[derive(Debug, Packet)]
+    #[derive(Debug, Deserialize)]
     pub struct LoginSuccess {
         uuid: String,
         username: String,

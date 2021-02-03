@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0.119", features = ["derive"] }
-arrow_serde_macros = { path = "../arrow_serde_macros" }

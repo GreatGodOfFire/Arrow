@@ -8,7 +8,6 @@ use serde::{Deserialize, Deserializer as SDeserializer};
 use arrow_serde::read_varint;
 use arrow_serde::Deserializer;
 // use arrow_serde::handshake::serverbound::Handshake;
-use arrow_serde_macros::Packet;
 
 use tokio::io::stdout;
 
